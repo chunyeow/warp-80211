@@ -47,7 +47,7 @@
 #define  WLAN_EXP_TYPE                 WARPNET_TYPE_80211_BASE + WARPNET_TYPE_80211_AP
 
 
-#define  WLAN_CHANNEL                  4
+#define  WLAN_CHANNEL                  1
 
 
 

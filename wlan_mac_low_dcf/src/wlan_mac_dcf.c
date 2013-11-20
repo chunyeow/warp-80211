@@ -69,7 +69,7 @@ int main(){
 	xil_printf("\f----- wlan_mac_dcf -----\n");
 	xil_printf("Compiled %s %s\n", __DATE__, __TIME__);
 
-	mac_param_band = RC_24GHZ;
+	mac_param_band = RC_5GHZ;
 
 	cpu_low_status = 0;
 
