@@ -73,7 +73,14 @@ int wlan_create_beacon_probe_frame(void* pkt_buf, u8 frame_control_1,mac_header_
 
 	txBufferPtr_u8[0] = 3; //Tag 3: DS Parameter set
 	txBufferPtr_u8[1] = 1; //tag length... doesn't include the tag itself and the tag length
-	txBufferPtr_u8[2] = chan;
+	if (chan < 9)
+		txBufferPtr_u8[2] = ((chan-1) * 4) + 36;
+	else if (chan < 20)
+		txBufferPtr_u8[2] = ((chan-9) * 4) + 100;
+	else if (chan < 24)
+		txBufferPtr_u8[2] = ((chan-20) * 4) + 149;
+	else
+		txBufferPtr_u8[2] = 0;
 	txBufferPtr_u8+=(1+2);
 
 	txBufferPtr_u8[0] = 5; //Tag 5: Traffic Indication Map (TIM)
