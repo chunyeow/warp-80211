@@ -108,7 +108,7 @@ void uart_rx(u8 rxByte){
 
 				break;
 				case ASCII_C:
-					if(mac_param_chan < 11){
+					if(mac_param_chan < 23){
 						deauthenticate_stations();
 						(mac_param_chan++);
 
