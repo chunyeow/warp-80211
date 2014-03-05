@@ -19,13 +19,17 @@ RUN_CONTINOUSLY = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Create a vector of node objects
-%This experiment uses 3 nodes: 2 will act as a transmitter and 1 will act
+%This experiment uses 5 nodes: 4 will act as a transmitter and 1 will act
 %as a receiver.
-%   nodes(0): Primary transmitter
-%   nodes(1): Secondary transmitter (receives clocks and triggers from
-%             primary transmittter)
-%   nodes(3): Receiver
-nodes = wl_initNodes(3);
+%   nodes(1): 1st transmitter
+%   nodes(2): 2nd transmitter (receives clocks and triggers from
+%             1st transmittter)
+%   nodes(3): 3rd transmitter (receives clocks and triggers from
+%             2nd transmitter)
+%   nodes(4): 4th transmitter (receives clocks and triggers from
+%             3rd transmitter) 
+%   nodes(5): Receiver
+nodes = wl_initNodes(5);
 
 %Create a UDP broadcast trigger and tell each node to be ready for it
 eth_trig = wl_trigger_eth_udp_broadcast;
@@ -34,20 +38,28 @@ wl_triggerManagerCmd(nodes,'add_ethernet_trigger',[eth_trig]);
 %Read Trigger IDs into workspace
 [T_IN_ETH,T_IN_ENERGY,T_IN_AGCDONE,T_IN_REG,T_IN_D0,T_IN_D1,T_IN_D2,T_IN_D3] =  wl_getTriggerInputIDs(nodes(1));
 [T_OUT_BASEBAND, T_OUT_AGC, T_OUT_D0, T_OUT_D1, T_OUT_D2, T_OUT_D3] = wl_getTriggerOutputIDs(nodes(1));
+[T_IN_ETH,T_IN_ENERGY,T_IN_AGCDONE,T_IN_REG,T_IN_D0,T_IN_D1,T_IN_D2,T_IN_D3] =  wl_getTriggerInputIDs(nodes(2));
+[T_OUT_BASEBAND, T_OUT_AGC, T_OUT_D0, T_OUT_D1, T_OUT_D2, T_OUT_D3] = wl_getTriggerOutputIDs(nodes(2));
+[T_IN_ETH,T_IN_ENERGY,T_IN_AGCDONE,T_IN_REG,T_IN_D0,T_IN_D1,T_IN_D2,T_IN_D3] =  wl_getTriggerInputIDs(nodes(3));
+[T_OUT_BASEBAND, T_OUT_AGC, T_OUT_D0, T_OUT_D1, T_OUT_D2, T_OUT_D3] = wl_getTriggerOutputIDs(nodes(3));
 
-%For the primary transmit node, we will allow Ethernet to trigger the buffer
+%For the 1st, 2nd, 3rd transmit node, we will allow Ethernet to trigger the buffer
 %baseband, the AGC, and debug0 (which is mapped to pin 8 on the debug
 %header). We also will allow Ethernet to trigger the same signals for the 
 %receiving node.
-wl_triggerManagerCmd([nodes(1),nodes(3)],'output_config_input_selection',[T_OUT_BASEBAND,T_OUT_AGC,T_OUT_D0],[T_IN_ETH,T_IN_REG]);
+wl_triggerManagerCmd([nodes(1),nodes(2),nodes(3),nodes(5)],'output_config_input_selection',[T_OUT_BASEBAND,T_OUT_AGC,T_OUT_D0],[T_IN_ETH,T_IN_REG]);
 
 %For the receive node, we will allow debug3 (mapped to pin 15 on the
 %debug header) to trigger the buffer baseband, and the AGC
 nodes(2).wl_triggerManagerCmd('output_config_input_selection',[T_OUT_BASEBAND,T_OUT_AGC],[T_IN_D3]);
+nodes(3).wl_triggerManagerCmd('output_config_input_selection',[T_OUT_BASEBAND,T_OUT_AGC],[T_IN_D3]);
+nodes(4).wl_triggerManagerCmd('output_config_input_selection',[T_OUT_BASEBAND,T_OUT_AGC],[T_IN_D3]);
 
 %For the receive node, we enable the debounce circuity on the debug 3 input
 %to deal with the fact that the signal may be noisy.
 nodes(2).wl_triggerManagerCmd('input_config_debounce_mode',[T_IN_D3],'enable'); 
+nodes(3).wl_triggerManagerCmd('input_config_debounce_mode',[T_IN_D3],'enable');
+nodes(4).wl_triggerManagerCmd('input_config_debounce_mode',[T_IN_D3],'enable');
 
 %Since the debounce circuitry is enabled, there will be a delay at the
 %receiver node for its input trigger. To better align the transmitter and
@@ -62,6 +74,8 @@ nodes(2).wl_triggerManagerCmd('input_config_debounce_mode',[T_IN_D3],'enable');
 %nodes(1).wl_triggerManagerCmd('output_config_delay',[T_OUT_BASEBAND,T_OUT_AGC],[50]); %50ns delay  - WARPLab 7.1.0
 %
 nodes(1).wl_triggerManagerCmd('output_config_delay',[T_OUT_BASEBAND,T_OUT_AGC],[56.25]); %56.25ns delay  - WARPLab 7.2.0
+nodes(2).wl_triggerManagerCmd('output_config_delay',[T_OUT_BASEBAND,T_OUT_AGC],[56.25]);
+nodes(3).wl_triggerManagerCmd('output_config_delay',[T_OUT_BASEBAND,T_OUT_AGC],[56.25]);
 
 %Get IDs for the interfaces on the boards. Since this example assumes each
 %board has the same interface capabilities, we only need to get the IDs
@@ -134,21 +148,29 @@ txData = [preamble;payload];
 
 node_tx1 = nodes(1);
 node_tx2 = nodes(2);
-node_rx = nodes(3);
+node_tx3 = nodes(3);
+node_tx4 = nodes(4);
+node_rx = nodes(5);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Transmit and receive signal using WARPLab
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-wl_basebandCmd(node_tx1,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,1:4)); %First 4 columns of txData is for primary tx
-wl_basebandCmd(node_tx2,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,5:8)); %Second 4 columns of txData is for secondary tx
+wl_basebandCmd(node_tx1,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,1:4)); %First 4 columns of txData is for 1st tx
+wl_basebandCmd(node_tx2,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,5:8)); %Second 4 columns of txData is for 2nd tx
+wl_basebandCmd(node_tx1,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,9:12)); %Third 4 columns of txData is for 3rd tx
+wl_basebandCmd(node_tx2,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,13:16)); %Fourth 4 columns of txData is for 4th tx
 
 wl_basebandCmd(node_tx1,'RF_ALL','tx_buff_en');
 wl_basebandCmd(node_tx2,'RF_ALL','tx_buff_en');
+wl_basebandCmd(node_tx2,'RF_ALL','tx_buff_en');
+wl_basebandCmd(node_tx3,'RF_ALL','tx_buff_en');
 wl_basebandCmd(node_rx,'RF_ALL','rx_buff_en');
 
 wl_interfaceCmd(node_tx1,'RF_ALL','tx_en');
 wl_interfaceCmd(node_tx2,'RF_ALL','tx_en');
+wl_interfaceCmd(node_tx3,'RF_ALL','tx_en');
+wl_interfaceCmd(node_tx4,'RF_ALL','tx_en');
 wl_interfaceCmd(node_rx,'RF_ALL','rx_en');
 
 
