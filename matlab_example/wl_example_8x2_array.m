@@ -158,13 +158,13 @@ node_rx = nodes(5);
 
 wl_basebandCmd(node_tx1,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,1:4)); %First 4 columns of txData is for 1st tx
 wl_basebandCmd(node_tx2,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,5:8)); %Second 4 columns of txData is for 2nd tx
-wl_basebandCmd(node_tx1,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,9:12)); %Third 4 columns of txData is for 3rd tx
-wl_basebandCmd(node_tx2,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,13:16)); %Fourth 4 columns of txData is for 4th tx
+wl_basebandCmd(node_tx3,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,9:12)); %Third 4 columns of txData is for 3rd tx
+wl_basebandCmd(node_tx4,[RFA,RFB,RFC,RFD], 'write_IQ', txData(:,13:16)); %Fourth 4 columns of txData is for 4th tx
 
 wl_basebandCmd(node_tx1,'RF_ALL','tx_buff_en');
 wl_basebandCmd(node_tx2,'RF_ALL','tx_buff_en');
-wl_basebandCmd(node_tx2,'RF_ALL','tx_buff_en');
 wl_basebandCmd(node_tx3,'RF_ALL','tx_buff_en');
+wl_basebandCmd(node_tx4,'RF_ALL','tx_buff_en');
 wl_basebandCmd(node_rx,'RF_ALL','rx_buff_en');
 
 wl_interfaceCmd(node_tx1,'RF_ALL','tx_en');
