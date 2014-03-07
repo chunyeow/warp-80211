@@ -126,20 +126,22 @@ shortsyms_rep = repmat(shortSymbol_time,1,30);
 preamble_single = shortsyms_rep;
 preamble_single = preamble_single(:);
 
-shifts = floor(linspace(0,31,8));
-for k = 1:8
+num_antenna = 16;
+
+shifts = floor(linspace(0,31,num_antenna));
+for k = 1:num_antenna
    %Shift preamble for each antenna so we don't have accidental beamforming
    preamble(:,k) = circshift(preamble_single,shifts(k));
 end
 
 Ts = 1/(wl_basebandCmd(nodes(1),'tx_buff_clk_freq'));
 
-payload = complex(randn(txLength-length(preamble),8),randn(txLength-length(preamble),8));
+payload = complex(randn(txLength-length(preamble),num_antenna),randn(txLength-length(preamble),num_antenna));
 payload_freq = fftshift(fft(payload));
 freqVec = linspace(-((1/Ts)/2e6),((1/Ts)/2e6),txLength-length(preamble));
 BW = 1; %MHz 
-noise_centerFreqs = linspace(-12,12,8);
-for k = 1:8
+noise_centerFreqs = linspace(-12,12,num_antenna);
+for k = 1:num_antenna
     payload_freq((freqVec < (noise_centerFreqs(k) - BW/2)) | (freqVec > (noise_centerFreqs(k) + BW/2)),k)=0;
 end
 payload = ifft(fftshift(payload_freq));
