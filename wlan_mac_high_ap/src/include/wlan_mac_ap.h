@@ -25,7 +25,7 @@
 #include "wlan_mac_dl_list.h"
 
 // Enable the WLAN UART Menu
-#define WLAN_USE_UART_MENU
+/* #define WLAN_USE_UART_MENU */
 
 // Allow Ethernet transmission of packets received by an associated station
 // destined for another associated station
