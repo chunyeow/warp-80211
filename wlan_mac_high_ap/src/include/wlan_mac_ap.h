@@ -26,6 +26,7 @@
 
 // Enable the WLAN UART Menu
 /* #define WLAN_USE_UART_MENU */
+#define SCANNER
 
 // Allow Ethernet transmission of packets received by an associated station
 // destined for another associated station

@@ -203,18 +203,22 @@ int main(){
 	// Initialize interrupts
 	wlan_mac_high_interrupt_init();
 
+#ifndef SCANNER
     // Setup default scheduled events:
 	//  Periodic beacon transmissions
 	wlan_mac_schedule_event_repeated(SCHEDULE_COARSE, BEACON_INTERVAL_US, SCHEDULE_REPEAT_FOREVER, (void*)beacon_transmit);
 
 	//  Periodic check for timed-out associations
 	wlan_mac_schedule_event_repeated(SCHEDULE_COARSE, ASSOCIATION_CHECK_INTERVAL_US, SCHEDULE_REPEAT_FOREVER, (void*)association_timestamp_check);
+#endif
 
 	//  Periodic blinking of hex display leds (to indicate new associations are allowed)
 	wlan_mac_high_enable_hex_dot_blink();
 
+#ifndef SCANNER
 	// By default accept new associations forever
 	enable_associations( ASSOCIATION_ALLOW_PERMANENT );
+#endif
 
 	// Reset the event log
 	event_log_reset();
@@ -250,11 +254,16 @@ int main(){
 	/////// TODO DEBUG  WRITE EXAMPLE ///////
 #endif
 
+#ifndef SCANNER
 	// Print AP information to the terminal
     xil_printf("WLAN MAC AP boot complete: \n");
     xil_printf("  SSID    : %s \n", access_point_ssid);
     xil_printf("  Channel : %d \n", mac_param_chan);
 	xil_printf("  MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x\n\n",wlan_mac_addr[0],wlan_mac_addr[1],wlan_mac_addr[2],wlan_mac_addr[3],wlan_mac_addr[4],wlan_mac_addr[5]);
+#else
+	xil_printf("WLAN Scanner for Probe Request Frame\n");
+	xil_printf("  MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x\n\n",wlan_mac_addr[0],wlan_mac_addr[1],wlan_mac_addr[2],wlan_mac_addr[3],wlan_mac_addr[4],wlan_mac_addr[5]);
+#endif
 
 #ifdef WLAN_USE_UART_MENU
 	xil_printf("\nAt any time, press the Esc key in your terminal to access the AP menu\n");
@@ -1188,6 +1197,7 @@ void mpdu_rx_process(void* pkt_buf_addr, u8 rate, u16 length) {
 	to_multicast = wlan_addr_mcast(rx_80211_header->address_1);
 
 	if( mpdu_info->state == RX_MPDU_STATE_FCS_GOOD && (unicast_to_me || to_multicast)){
+#ifndef SCANNER
 		//GOOD FCS
 		associated_station_entry = wlan_mac_high_find_station_info_ADDR(&association_table, (rx_80211_header->address_2));
 
@@ -1226,8 +1236,10 @@ void mpdu_rx_process(void* pkt_buf_addr, u8 rate, u16 length) {
 				((station_stats)->mgmt.rx_num_bytes) += mpdu_info->length;
 			}
 		}
+#endif
 
 		switch(rx_80211_header->frame_control_1) {
+#ifndef SCANNER
 			case (MAC_FRAME_CTRL1_SUBTYPE_DATA): //Data Packet
 				if(associated_station != NULL){
 					if((rx_80211_header->frame_control_2) & MAC_FRAME_CTRL2_FLAG_TO_DS) {
@@ -1322,8 +1334,10 @@ void mpdu_rx_process(void* pkt_buf_addr, u8 rate, u16 length) {
 				}//END if(associated_station != NULL)
 
 			break;
+#endif
 
 			case (MAC_FRAME_CTRL1_SUBTYPE_PROBE_REQ): //Probe Request Packet
+#ifndef SCANNER
 				if(wlan_addr_eq(rx_80211_header->address_3, bcast_addr)) {
 					//BSS Id: Broadcast
 					mpdu_ptr_u8 += sizeof(mac_header_80211);
@@ -1372,8 +1386,17 @@ void mpdu_rx_process(void* pkt_buf_addr, u8 rate, u16 length) {
 						goto mpdu_rx_process_end;
 					}
 				}
+#else
+				if(wlan_addr_eq(rx_80211_header->address_3, bcast_addr)) {
+					station_stats = wlan_mac_high_add_statistics(&statistics_table, NULL, rx_80211_header->address_2);
+					station_stats->last_rx_timestamp = get_usec_timestamp();
+					((station_stats)->mgmt.rx_num_packets)++;
+					station_stats->last_power = mpdu_info->rx_power;
+				}
+#endif
 			break;
 
+#ifndef SCANNER
 			case (MAC_FRAME_CTRL1_SUBTYPE_AUTH): //Authentication Packet
 				if(wlan_addr_eq(rx_80211_header->address_3, wlan_mac_addr) && wlan_mac_addr_filter_is_allowed(rx_80211_header->address_2)) {
 					mpdu_ptr_u8 += sizeof(mac_header_80211);
@@ -1511,6 +1534,7 @@ void mpdu_rx_process(void* pkt_buf_addr, u8 rate, u16 length) {
 					wlan_mac_high_remove_association(&association_table, &statistics_table, rx_80211_header->address_2);
 
 			break;
+#endif
 
 			default:
 				//This should be left as a verbose print. It occurs often when communicating with mobile devices since they tend to send

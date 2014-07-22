@@ -119,7 +119,7 @@ typedef struct{
 	u64     last_rx_timestamp; 	  ///< Timestamp of the last frame reception
 	u8      addr[6];			  ///< HW Address
 	u8      is_associated;		  ///< Is this device associated with me?
-	u8      padding;
+	char	last_power;
 	frame_statistics_txrx	data; ///< Statistics about data types
 	frame_statistics_txrx	mgmt; ///< Statistics about data types
 } statistics_txrx;
