@@ -3,6 +3,8 @@
 	<name>wlan_mac_shared</name>
 	<comment></comment>
 	<projects>
+		<project>wlan_bsp_cpu_high</project>
+		<project>wlan_bsp_cpu_low</project>
 	</projects>
 	<buildSpec>
 	</buildSpec>

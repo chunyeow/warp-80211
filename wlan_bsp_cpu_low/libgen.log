@@ -2,8 +2,8 @@ Release 14.4 - libgen Xilinx EDK 14.4 Build EDK_P.49d
  (nt64)
 Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.
 
-Command Line: libgen -hw ../wlan_xps_v29_hw_platform/system.xml -lp
-C:/designs/2013_summer/wlan/wlan_xps_v29_Sep_27_split_lmb -lp
+Command Line: libgen -hw ../Mango_802.11_RefDes_v0.93_hw_platform/system.xml -lp
+C:/designs/2014_spring/wlan/Mango_802.11_RefDes_v0.93 -lp
 C:/SVN/mango/edk_user_repository -lp C:/SVN/WARP_public/edk_user_repository -pe
 mb_low -log libgen.log system.mss 
 

@@ -3,7 +3,7 @@
 	<name>wlan_bsp_cpu_high</name>
 	<comment></comment>
 	<projects>
-		<project>wlan_xps_v29_hw_platform</project>
+		<project>Mango_802.11_RefDes_v0.93_hw_platform</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

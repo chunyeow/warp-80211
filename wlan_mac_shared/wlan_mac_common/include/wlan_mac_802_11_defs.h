@@ -1,12 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   : wlan_mac_802_11_defs.h
-// Authors: Patrick Murphy (murphpo [at] mangocomm.com)
-//			Chris Hunter (chunter [at] mangocomm.com)
-// License: Copyright 2013, Mango Communications. All rights reserved.
-//          Distributed under the Mango Communications Reference Design License
-//				See LICENSE.txt included in the design archive or
-//				at http://mangocomm.com/802.11/license
-////////////////////////////////////////////////////////////////////////////////
+/** @file wlan_mac_802_11_defs.h
+ *  @brief Common 802.11 Definitions
+ *
+ *  This contains definitions of 802.11 packets that are required by both
+ *  the upper and lower level CPUs.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ */
 
 #ifndef WLAN_MAC_802_11_H
 #define WLAN_MAC_802_11_H
@@ -21,6 +27,13 @@ typedef struct{
 	u16 sequence_control;
 	//u8 address_4[6];
 } mac_header_80211;
+
+typedef struct{
+	u8 frame_control_1;
+	u8 frame_control_2;
+	u16 duration_id;
+	u8 address_ra[6];
+} mac_header_80211_ACK;
 
 //IEEE 802.11-2012 section 8.2.4:
 //frame_control_1 bits[7:0]:
@@ -67,6 +80,7 @@ typedef struct{
 //Data (MAC_FRAME_CTRL1_TYPE_DATA) sub-types
 
 #define MAC_FRAME_CTRL1_SUBTYPE_DATA			(MAC_FRAME_CTRL1_TYPE_DATA | 0x00)
+#define MAC_FRAME_CTRL1_SUBTYPE_NULLDATA		(MAC_FRAME_CTRL1_TYPE_DATA | 0x40)
 
 //IEEE 802.11-2012 section 8.2.4:
 //frame_control_2 bits[7:0]:

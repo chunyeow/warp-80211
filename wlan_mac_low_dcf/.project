@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>wlan_mac_low_dcf</name>
-	<comment>wlan_bsp_cpu_low - mb_low</comment>
+	<comment></comment>
 	<projects>
 		<project>wlan_bsp_cpu_low</project>
 	</projects>
@@ -84,6 +84,11 @@
 			<name>wlan_mac_common</name>
 			<type>2</type>
 			<locationURI>WORKSPACE_LOC/wlan_mac_shared/wlan_mac_common</locationURI>
+		</link>
+		<link>
+			<name>wlan_mac_low_framework</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/wlan_mac_shared/wlan_mac_low_framework</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

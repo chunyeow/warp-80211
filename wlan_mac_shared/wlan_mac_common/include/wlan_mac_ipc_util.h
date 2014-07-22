@@ -1,18 +1,37 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   : wlan_mac_ipc_util.h
-// Authors: Patrick Murphy (murphpo [at] mangocomm.com)
-//			Chris Hunter (chunter [at] mangocomm.com)
-// License: Copyright 2013, Mango Communications. All rights reserved.
-//          Distributed under the Mango Communications Reference Design License
-//				See LICENSE.txt included in the design archive or
-//				at http://mangocomm.com/802.11/license
-////////////////////////////////////////////////////////////////////////////////
+/** @file wlan_mac_ipc_util.h
+ *  @brief Inter-processor Communication Framework
+ *
+ *  This contains code common to both CPU_LOW and CPU_HIGH that allows them
+ *  to pass messages to one another.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ */
 
 #ifndef WLAN_MAC_IPC_UTIL_H_
+
+#include "wlan_mac_misc_util.h"
+
 #define WLAN_MAC_IPC_UTIL_H_
 
 #define PKT_BUF_MUTEX_DEVICE_ID		XPAR_MUTEX_0_DEVICE_ID
+
+//FIXME: We need to disambiguate CPU_HIGH and CPU_LOW here. I'm currently using the presence
+//of an interrupt controller for that, but there has to be a better way
+
+#ifdef XPAR_INTC_0_DEVICE_ID
+#include "xintc.h"
+//#define MAILBOX_DEVICE_ID			XPAR_MBOX_1_DEVICE_ID
 #define MAILBOX_DEVICE_ID			XPAR_MBOX_0_DEVICE_ID
+#else
+#define MAILBOX_DEVICE_ID			XPAR_MBOX_0_DEVICE_ID
+#endif
 
 #define EXC_MUTEX_TX_FAILURE 1
 #define EXC_MUTEX_RX_FAILURE 2
@@ -26,32 +45,46 @@
 #define PKT_BUF_MUTEX_RX_BASE	16
 
 #define IPC_MBOX_MSG_ID_DELIM		0xF000
-#define IPC_MBOX_MAX_MSG_WORDS		255
+#define IPC_BUFFER_MAX_NUM_WORDS    100
 
 //IPC Messages
-#define IPC_MBOX_RX_MPDU_READY		0
-#define IPC_MBOX_TX_MPDU_READY		1
-#define IPC_MBOX_TX_MPDU_ACCEPT		2
-#define IPC_MBOX_TX_MPDU_DONE		3
-#define IPC_MBOX_HW_INFO			4
-#define IPC_MBOX_CPU_STATUS			5
-#define IPC_MBOX_CONFIG_RF_IFC		6
-#define IPC_MBOX_CONFIG_MAC			7
-#define IPC_MBOX_CONFIG_PHY_RX		8
-#define IPC_MBOX_CONFIG_PHY_TX		9
+#define IPC_MBOX_RX_MPDU_READY			0
+#define IPC_MBOX_TX_MPDU_READY			1
+#define IPC_MBOX_TX_MPDU_ACCEPT			2
+#define IPC_MBOX_TX_MPDU_DONE			3
+#define IPC_MBOX_HW_INFO				4
+#define IPC_MBOX_CPU_STATUS				5
+#define IPC_MBOX_CONFIG_CHANNEL			6
+#define IPC_MBOX_CONFIG_MAC				7
+#define IPC_MBOX_CONFIG_PHY_RX			8
+#define IPC_MBOX_CONFIG_PHY_TX			9
+#define IPC_MBOX_SET_TIME				11
+#define IPC_MBOX_DEMO_CONFIG			12
+#define IPC_MBOX_CONFIG_RX_ANT_MODE		13
+#define IPC_MBOX_CONFIG_TX_CTRL_POW		14
+#define IPC_MBOX_CONFIG_RX_FILTER		15
+#define IPC_MBOX_MEM_READ_WRITE     	16
+#define IPC_MBOX_LOW_PARAM				17
+#define IPC_MBOX_LOW_RANDOM_SEED        18
+
+typedef struct{
+	u32  baseaddr;
+	u32  num_words;
+} ipc_reg_read_write;
+
+#define IPC_REG_READ_MODE 0
+#define IPC_REG_WRITE_MODE 1
+
+#define DEMO_CONFIG_FLAGS_EN 0x0001
 
 #define IPC_MBOX_MSG_ID(id) (IPC_MBOX_MSG_ID_DELIM | ((id) & 0xFFF))
 #define IPC_MBOX_MSG_ID_TO_MSG(id) (id) & 0xFFF
 
-//These config structs need to be an integer # of u32
 typedef struct{
-	u8 channel;
-	u8 reserved[3];
-} ipc_config_rf_ifc;
-
-typedef struct{
-	u8 reserved[4];
+	u32 slot_config; //TODO: remove
 } ipc_config_mac;
+
+#define SLOT_CONFIG_RAND 0xFFFFFFFF
 
 typedef struct{
 	u8 reserved[4];
@@ -87,19 +120,25 @@ typedef struct {
 #define WLAN_MAC_ETH_ADDR_LEN         6
 
 typedef struct {
-
     u32   type;
-
 	u32   serial_number;
 	u32   fpga_dna[WLAN_MAC_FPGA_DNA_LEN];
-
     u32   wn_exp_eth_device;
     u8    hw_addr_wn[WLAN_MAC_ETH_ADDR_LEN];
     u8    hw_addr_wlan[WLAN_MAC_ETH_ADDR_LEN];
     
 } wlan_mac_hw_info;
 
-
+///Note: This struct must be padded to be an integer
+///number of u32 words.
+typedef struct {
+	u32   tx_start_delta;
+	phy_tx_params phy_params;
+	u16   num_slots;
+	u16	  cw;
+	u8 	  chan_num;
+	u8 	  padding[3];
+} wlan_mac_low_tx_details;
 
 
 
@@ -121,8 +160,8 @@ void nullCallback(void* param);
 
 
 #ifdef XPAR_INTC_0_DEVICE_ID
-int wlan_lib_setup_mailbox_interrupt(XIntc* intc);
-void wlan_lib_setup_mailbox_rx_callback( void(*callback)());
+int wlan_lib_mailbox_setup_interrupt(XIntc* intc);
+void wlan_lib_mailbox_set_rx_callback( function_ptr_t callback );
 void MailboxIntrHandler(void *CallbackRef);
 #endif
 

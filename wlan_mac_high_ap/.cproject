@@ -20,13 +20,13 @@
 					<folderInfo id="xilinx.gnu.mb.exe.debug.1555079629." name="/" resourcePath="">
 						<toolChain id="xilinx.gnu.mb.exe.debug.toolchain.222191913" name="Xilinx MicroBlaze GNU Toolchain" superClass="xilinx.gnu.mb.exe.debug.toolchain">
 							<targetPlatform binaryParser="com.xilinx.sdk.managedbuilder.XELF.mb" id="xilinx.mb.target.gnu.base.debug.1410592948" isAbstract="false" name="Debug Platform" superClass="xilinx.mb.target.gnu.base.debug"/>
-							<builder buildPath="${workspace_loc:/wlan_mac_high_ap/Debug}" enableAutoBuild="true" id="xilinx.gnu.mb.toolchain.builder.debug.1460799409" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GNU make" superClass="xilinx.gnu.mb.toolchain.builder.debug"/>
+							<builder buildPath="${workspace_loc:/wlan_mac_high_ap/Debug}" enableAutoBuild="true" id="xilinx.gnu.mb.toolchain.builder.debug.1460799409" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GNU make" parallelBuildOn="true" parallelizationNumber="8" superClass="xilinx.gnu.mb.toolchain.builder.debug"/>
 							<tool id="xilinx.gnu.mb.c.toolchain.assembler.debug.731381096" name="MicroBlaze gcc assembler" superClass="xilinx.gnu.mb.c.toolchain.assembler.debug">
 								<option id="xilinx.gnu.mb.assembler.usele.964898132" name="Produce little endian code (-mlittle-endian)" superClass="xilinx.gnu.mb.assembler.usele" value="true" valueType="boolean"/>
 								<inputType id="xilinx.gnu.assembler.input.114431667" superClass="xilinx.gnu.assembler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.c.toolchain.compiler.debug.814194200" name="MicroBlaze gcc compiler" superClass="xilinx.gnu.mb.c.toolchain.compiler.debug">
-								<option defaultValue="gnu.c.optimization.level.none" id="xilinx.gnu.compiler.option.optimization.level.350466145" name="Optimization Level" superClass="xilinx.gnu.compiler.option.optimization.level" valueType="enumerated"/>
+								<option defaultValue="gnu.c.optimization.level.none" id="xilinx.gnu.compiler.option.optimization.level.350466145" name="Optimization Level" superClass="xilinx.gnu.compiler.option.optimization.level" value="gnu.c.optimization.level.size" valueType="enumerated"/>
 								<option id="xilinx.gnu.compiler.option.debugging.level.376619099" name="Debug Level" superClass="xilinx.gnu.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.mbversion.992274780" name="MicroBlaze Version" superClass="xilinx.gnu.mb.compiler.inferred.mbversion" value="8.40.b" valueType="string"/>
 								<option id="xilinx.gnu.mb.compiler.inferred.norelax.502682060" name="No relaxation (-Wl,--no-relax)" superClass="xilinx.gnu.mb.compiler.inferred.norelax" value="true" valueType="boolean"/>
@@ -37,11 +37,15 @@
 								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.824146403" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../wlan_bsp_cpu_high/mb_high/include"/>
 								</option>
-								<option id="xilinx.gnu.compiler.dircategory.includes.917690756" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
+								<option id="xilinx.gnu.compiler.dircategory.includes.917690756" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/wlan_mac_common/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/wlan_mac_high_framework/include}&quot;"/>
 								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.flags.2102894065" name="Software Platform Inferred Flags" superClass="xilinx.gnu.compiler.inferred.swplatform.flags" value="  " valueType="string"/>
+								<option id="xilinx.gnu.compiler.option.warnings.pedantic.1512578440" name="Pedantic (-pedantic)" superClass="xilinx.gnu.compiler.option.warnings.pedantic" value="false" valueType="boolean"/>
+								<option id="xilinx.gnu.compiler.option.warnings.pedantic.error.643724300" name="Pedantic warnings as errors (-pedantic-errors)" superClass="xilinx.gnu.compiler.option.warnings.pedantic.error" value="false" valueType="boolean"/>
+								<option id="xilinx.gnu.compiler.option.warnings.syntax.34830020" name="Check syntax only (-fsyntax-only)" superClass="xilinx.gnu.compiler.option.warnings.syntax" value="false" valueType="boolean"/>
 								<inputType id="xilinx.gnu.compiler.input.2125723807" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.cxx.toolchain.compiler.debug.922080943" name="MicroBlaze g++ compiler" superClass="xilinx.gnu.mb.cxx.toolchain.compiler.debug">
@@ -56,6 +60,7 @@
 								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.1326572165" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../wlan_bsp_cpu_high/mb_high/include"/>
 								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.flags.39236098" name="Software Platform Inferred Flags" superClass="xilinx.gnu.compiler.inferred.swplatform.flags" value="  " valueType="string"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.toolchain.archiver.659452832" name="MicroBlaze archiver" superClass="xilinx.gnu.mb.toolchain.archiver"/>
 							<tool id="xilinx.gnu.mb.c.toolchain.linker.debug.2044248458" name="MicroBlaze gcc linker" superClass="xilinx.gnu.mb.c.toolchain.linker.debug">
@@ -72,6 +77,7 @@
 									<listOptionValue builtIn="false" value="-Wl,--start-group,-lxil,-lgcc,-lc,--end-group"/>
 								</option>
 								<option id="xilinx.gnu.c.linker.option.lscript.496649776" name="Linker Script" superClass="xilinx.gnu.c.linker.option.lscript" value="../src/lscript.ld" valueType="string"/>
+								<option id="xilinx.gnu.c.link.option.ldflags.203019009" name="Linker Flags" superClass="xilinx.gnu.c.link.option.ldflags" value="-Wl,-Map=executable.map" valueType="string"/>
 								<inputType id="xilinx.gnu.linker.input.16254003" superClass="xilinx.gnu.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -95,7 +101,7 @@
 							</tool>
 							<tool id="xilinx.gnu.mb.size.debug.1442855385" name="MicroBlaze Print Size" superClass="xilinx.gnu.mb.size.debug"/>
 							<tool id="xilinx.elfcheck.mb.debug.1091966224" name="Xilinx ELF Check" superClass="xilinx.elfcheck.mb.debug">
-								<option id="xilinx.elfcheck.option.hwspec.1526683781" name="Hardware Specification" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../wlan_xps_v29_hw_platform/system.xml" valueType="string"/>
+								<option id="xilinx.elfcheck.option.hwspec.1526683781" name="Hardware Specification" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../Mango_802.11_RefDes_v0.93_hw_platform/system.xml" valueType="string"/>
 								<option id="xilinx.elfcheck.option.procname.238736404" name="Processor Name" superClass="xilinx.elfcheck.option.procname" value="-pe mb_high" valueType="string"/>
 							</tool>
 						</toolChain>
@@ -854,6 +860,7 @@
 								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2063321588" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../wlan_bsp_cpu_high/mb_high/include"/>
 								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.flags.2141213926" name="Software Platform Inferred Flags" superClass="xilinx.gnu.compiler.inferred.swplatform.flags" value="  " valueType="string"/>
 								<inputType id="xilinx.gnu.compiler.input.1487680471" name="C source files" superClass="xilinx.gnu.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.cxx.toolchain.compiler.release.651580023" name="MicroBlaze g++ compiler" superClass="xilinx.gnu.mb.cxx.toolchain.compiler.release">
@@ -867,6 +874,7 @@
 								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.2020503434" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../wlan_bsp_cpu_high/mb_high/include"/>
 								</option>
+								<option id="xilinx.gnu.compiler.inferred.swplatform.flags.1022799180" name="Software Platform Inferred Flags" superClass="xilinx.gnu.compiler.inferred.swplatform.flags" value="  " valueType="string"/>
 							</tool>
 							<tool id="xilinx.gnu.mb.toolchain.archiver.419304397" name="MicroBlaze archiver" superClass="xilinx.gnu.mb.toolchain.archiver"/>
 							<tool id="xilinx.gnu.mb.c.toolchain.linker.release.1743321976" name="MicroBlaze gcc linker" superClass="xilinx.gnu.mb.c.toolchain.linker.release">
@@ -904,7 +912,7 @@
 							</tool>
 							<tool id="xilinx.gnu.mb.size.release.1195568433" name="MicroBlaze Print Size" superClass="xilinx.gnu.mb.size.release"/>
 							<tool id="xilinx.elfcheck.mb.release.1897238164" name="Xilinx ELF Check" superClass="xilinx.elfcheck.mb.release">
-								<option id="xilinx.elfcheck.option.hwspec.375114944" name="Hardware Specification" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../wlan_xps_v29_hw_platform/system.xml" valueType="string"/>
+								<option id="xilinx.elfcheck.option.hwspec.375114944" name="Hardware Specification" superClass="xilinx.elfcheck.option.hwspec" value="-hw ../../Mango_802.11_RefDes_v0.93_hw_platform/system.xml" valueType="string"/>
 								<option id="xilinx.elfcheck.option.procname.1990156257" name="Processor Name" superClass="xilinx.elfcheck.option.procname" value="-pe mb_high" valueType="string"/>
 							</tool>
 						</toolChain>

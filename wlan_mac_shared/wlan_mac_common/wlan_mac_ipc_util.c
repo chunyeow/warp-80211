@@ -1,12 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   : wlan_lib.c
-// Authors: Patrick Murphy (murphpo [at] mangocomm.com)
-//			Chris Hunter (chunter [at] mangocomm.com)
-// License: Copyright 2013, Mango Communications. All rights reserved.
-//          Distributed under the Mango Communications Reference Design License
-//				See LICENSE.txt included in the design archive or
-//				at http://mangocomm.com/802.11/license
-////////////////////////////////////////////////////////////////////////////////
+/** @file wlan_mac_ipc_util.c
+ *  @brief Inter-processor Communication Framework
+ *
+ *  This contains code common to both CPU_LOW and CPU_HIGH that allows them
+ *  to pass messages to one another.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ *  @bug No known bugs.
+ */
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -19,6 +26,7 @@
 #ifdef XPAR_INTC_0_DEVICE_ID
 #include "xintc.h"
 #include "xil_exception.h"
+#include "wlan_mac_high.h"
 #endif
 
 #include "wlan_mac_ipc_util.h"
@@ -30,10 +38,8 @@
 
 #define MAILBOX_RIT	0	/* mailbox receive interrupt threshold */
 #define MAILBOX_SIT	0	/* mailbox send interrupt threshold */
-#define MBOX_DEVICE_ID		XPAR_MBOX_0_DEVICE_ID
-#define INTC_DEVICE_ID		XPAR_INTC_0_DEVICE_ID
-#define MBOX_INTR_ID		XPAR_INTC_0_MBOX_0_VEC_ID
-
+//#define MBOX_INTR_ID		XPAR_INTC_0_MBOX_0_VEC_ID
+#define MBOX_INTR_ID		XPAR_MB_HIGH_INTC_MB_MAILBOX_INTERRUPT_0_INTR
 static XIntc* Intc_ptr;
 function_ptr_t mailbox_rx_callback;
 
@@ -45,7 +51,7 @@ void nullCallback(void* param){};
 XMbox ipc_mailbox;
 XMutex pkt_buf_mutex;
 
-
+u8 _demo_spoof_src_mac_addr[6] = { 0x00, 0x50, 0xC2, 0x63, 0x3F, 0x00 };
 
 int wlan_lib_init () {
 	u32 i;
@@ -78,7 +84,7 @@ int wlan_lib_init () {
 
 #ifdef XPAR_INTC_0_DEVICE_ID
 
-int wlan_lib_setup_mailbox_interrupt(XIntc* intc){
+int wlan_lib_mailbox_setup_interrupt(XIntc* intc){
 	int Status;
 
 	Intc_ptr = intc;
@@ -100,13 +106,17 @@ int wlan_lib_setup_mailbox_interrupt(XIntc* intc){
 	return 0;
 }
 
-void wlan_lib_setup_mailbox_rx_callback( void(*callback)()){
-	mailbox_rx_callback = (function_ptr_t)callback;
+void wlan_lib_mailbox_set_rx_callback( function_ptr_t callback ){
+	mailbox_rx_callback = callback;
 }
 
 void MailboxIntrHandler(void *CallbackRef){
 	u32 Mask;
 	XMbox *MboxInstPtr = (XMbox *)CallbackRef;
+
+#ifdef _ISR_PERF_MON_EN_
+	wlan_mac_high_set_debug_gpio(ISR_PERF_MON_GPIO_MASK);
+#endif
 
 	XIntc_Stop(Intc_ptr);
 
@@ -114,24 +124,16 @@ void MailboxIntrHandler(void *CallbackRef){
 
 	XMbox_ClearInterrupt(MboxInstPtr, XMB_IX_RTA);
 
-//	xil_printf("INTERRUPT: 0x%x\n",Mask);
-
-//	if (Mask & XMB_IX_STA) {
-		//Send interrupt. Do nothing.
-//	}
-
 	if (Mask & XMB_IX_RTA) {
-		//xil_printf("CAALLLL BAAACCKKK addr = 0x%08x\n", mailbox_rx_callback);
+
 		mailbox_rx_callback();
 	}
 
-//	if (Mask & XMB_IX_ERR) {
-//		xil_printf("Error = 0x%x\n", XMbox_ReadReg(MboxInstPtr->Config.BaseAddress,XMB_ERROR_REG_OFFSET));
-//		warp_printf(PL_ERROR, "Error reported by Mailbox via interrupt\n");
-//	}
-
 	XIntc_Start(Intc_ptr, XIN_REAL_MODE);
 
+#ifdef _ISR_PERF_MON_EN_
+	wlan_mac_high_clear_debug_gpio(ISR_PERF_MON_GPIO_MASK);
+#endif
 
 }
 
@@ -178,7 +180,6 @@ int lock_pkt_buf_tx(u8 pkt_buf_ind) {
 	//Check inputs
 	if(pkt_buf_ind >= NUM_TX_PKT_BUFS)
 		return PKT_BUF_MUTEX_FAIL_INVALID_BUF;
-
 
 	status = XMutex_Trylock(&pkt_buf_mutex, (pkt_buf_ind + PKT_BUF_MUTEX_TX_BASE));
 
@@ -267,7 +268,7 @@ int ipc_mailbox_write_msg(wlan_ipc_msg* msg) {
 	}
 
 	//Check that msg isn't too long
-	if( (msg->num_payload_words) > IPC_MBOX_MAX_MSG_WORDS) {
+	if( (msg->num_payload_words) > IPC_BUFFER_MAX_NUM_WORDS) {
 		return IPC_MBOX_INVALID_MSG;
 	}
 
@@ -289,7 +290,10 @@ inline int ipc_mailbox_read_isempty(){
 
 int ipc_mailbox_read_msg(wlan_ipc_msg* msg) {
 	u32 bytes_read;
+	u32 i;
+	u32 trash_bin;
 	int status;
+
 
 	//Mailbox read functions:
 	//int XMbox_Read(XMbox *InstancePtr, u32 *BufferPtr, u32 RequestedBytes, u32 *BytesRecvdPtr);
@@ -318,8 +322,13 @@ int ipc_mailbox_read_msg(wlan_ipc_msg* msg) {
 	}
 
 	//Check that msg isn't too long
-	if( (msg->num_payload_words) > IPC_MBOX_MAX_MSG_WORDS) {
-		XMbox_Flush(&ipc_mailbox);
+	if( (msg->num_payload_words) > IPC_BUFFER_MAX_NUM_WORDS) {
+
+		for(i=0;i<msg->num_payload_words;i++){
+			//Flush this particular message from the mailbox
+			XMbox_ReadBlocking(&ipc_mailbox, &trash_bin, 4);
+		}
+
 		return IPC_MBOX_INVALID_MSG;
 	}
 

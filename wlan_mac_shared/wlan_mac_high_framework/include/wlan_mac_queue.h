@@ -1,71 +1,68 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   : wlan_mac_queue.h
-// Authors: Patrick Murphy (murphpo [at] mangocomm.com)
-//			Chris Hunter (chunter [at] mangocomm.com)
-// License: Copyright 2013, Mango Communications. All rights reserved.
-//          Distributed under the Mango Communications Reference Design License
-//				See LICENSE.txt included in the design archive or
-//				at http://mangocomm.com/802.11/license
-////////////////////////////////////////////////////////////////////////////////
+/** @file wlan_mac_queue.h
+ *  @brief Transmit Queue Framework
+ *
+ *  This contains code for accessing the transmit queue.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ */
 
 #ifndef WLAN_MAC_QUEUE_H_
 #define WLAN_MAC_QUEUE_H_
 
-#define NUM_QUEUES 10
+#include "wlan_mac_dl_list.h"
+#include "wlan_mac_misc_util.h"
 
-typedef struct packet_bd packet_bd;
-struct packet_bd{
-	void* metadata_ptr;
-	packet_bd* next;
-	packet_bd* prev;
-	void* buf_ptr;
-};
+#define QUEUE_BUFFER_SIZE	0x1000 	//4KB
 
-typedef struct {
-	packet_bd* first;
-	packet_bd* last;
-	u16 length;
-} packet_bd_list;
+typedef dl_entry tx_queue_element;
 
-#define PQUEUE_MAX_FRAME_SIZE	0x800 	//2KB
+typedef struct{
+	u8	  metadata_type;
+	u8	  reserved[3];
+	u32   metadata_ptr;
+} tx_queue_metadata;
 
-//Bottom 48kB of data BRAM is used for PQUEUE
-#define PQUEUE_MEM_BASE				(XPAR_MB_HIGH_DATA_BRAM_CTRL_S_AXI_BASEADDR)
+#define QUEUE_METADATA_TYPE_IGNORE			0x00
+#define QUEUE_METADATA_TYPE_STATION_INFO	0x01
+#define QUEUE_METADATA_TYPE_TX_PARAMS   	0x02
 
-//First section of packet_bd memory space is the packet_bd buffer descriptors
-#define PQUEUE_SPACE_BASE		PQUEUE_MEM_BASE
 
-//Second section of packet_bd memory space is the raw buffer space for payloads
-//Use BRAM for queue
-//#define PQUEUE_BUFFER_SPACE_BASE	(PQUEUE_MEM_BASE+(PQUEUE_LEN*sizeof(packet_bd)))
-//Use DRAM for queue
-//#define PQUEUE_BUFFER_SPACE_BASE	XPAR_DDR3_SODIMM_S_AXI_BASEADDR
+typedef struct{
+	tx_queue_metadata metadata;
+	tx_frame_info frame_info;
+	u8 phy_hdr_pad[PHY_TX_PKT_BUF_PHY_HDR_SIZE];
+	u8 frame[QUEUE_BUFFER_SIZE - PHY_TX_PKT_BUF_PHY_HDR_SIZE - sizeof(tx_frame_info) - sizeof(tx_queue_metadata)];
+} tx_queue_buffer;
 
+//Bottom 48kB of data BRAM is used for tx_queue_element
+#define QUEUE_DL_ENTRY_MEM_BASE				(XPAR_MB_HIGH_AUX_BRAM_CTRL_S_AXI_BASEADDR)
+
+#define QUEUE_DL_ENTRY_SPACE_BASE		QUEUE_DL_ENTRY_MEM_BASE
 
 
 int queue_init();
 
-void enqueue_after_end(u16 queue_sel, packet_bd_list* ring);
-void dequeue_from_beginning(packet_bd_list* new_list, u16 queue_sel, u16 num_packet_bd);
+tx_queue_element* queue_checkout();
+void queue_checkin(tx_queue_element* tqe);
 
+void enqueue_after_tail(u16 queue_sel, tx_queue_element* tqe);
+tx_queue_element* dequeue_from_head(u16 queue_sel);
 
-//Functions for checking in and out packet_bds from the free ring
-void queue_checkout(packet_bd_list* new_list, u16 num_packet_bd);
-void queue_checkin(packet_bd_list* ring);
+void queue_checkout_list(dl_list* new_list, u16 num_tqe);
 inline u32 queue_num_free();
 inline u32 queue_num_queued(u16 queue_sel);
 
-//Doubly linked list helper functions
-void packet_bd_insertAfter(packet_bd_list* ring, packet_bd* bd, packet_bd* bd_new);
-void packet_bd_insertBefore(packet_bd_list* ring, packet_bd* bd, packet_bd* bd_new);
-void packet_bd_insertBeginning(packet_bd_list* ring, packet_bd* bd_new);
-void packet_bd_insertEnd(packet_bd_list* ring, packet_bd* bd_new);
-void packet_bd_remove(packet_bd_list* ring, packet_bd* bd);
 int queue_total_size();
+void purge_queue(u16 queue_sel);
 
-void packet_bd_list_init(packet_bd_list* list);
-void packet_bd_print(packet_bd_list* ring);
 void queue_dram_present(u8 present);
-
+inline int dequeue_transmit_checkin(u16 queue_sel);
 
 #endif /* WLAN_MAC_QUEUE_H_ */

@@ -1,91 +1,65 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   :	wlan_exp_node.c
-// Authors:	Chris Hunter (chunter [at] mangocomm.com)
-//			Patrick Murphy (murphpo [at] mangocomm.com)
-//          Erik Welsh (welsh [at] mangocomm.com)
-// License: Copyright 2013, Mango Communications. All rights reserved.
-//          Distributed under the Mango Communications Reference Design License
-//				See LICENSE.txt included in the design archive or
-//				at http://mangocomm.com/802.11/license
-////////////////////////////////////////////////////////////////////////////////
-
+/** @file wlan_exp_common.c
+ *  @brief Experiment Framework (Common)
+ *
+ *  This contains the code for WARPnet Experimental Framework.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ *  @bug No known bugs.
+ */
 
 /***************************** Include Files *********************************/
 
 #include "wlan_exp_common.h"
 
 
-#ifdef USE_WARPNET_WLAN_EXP
+
 
 // Xilinx / Standard library includes
 
 #include <xparameters.h>
 #include <xil_io.h>
-#include <Xio.h>
+#include <xio.h>
 
 #include "string.h"
 
 // WLAN includes
 
-#include "wlan_mac_util.h"
+#include "wlan_mac_high.h"
 
+wlan_mac_hw_info* hw_info_ptr;
 
+void wlan_exp_configure(u32 type, u32 eth_dev_num){
+	hw_info_ptr = wlan_mac_high_get_hw_info();
 
-
-/*************************** Constant Definitions ****************************/
-
-// #define _DEBUG_
-
-/*********************** Global Variable Definitions *************************/
-
-
-
-/*************************** Variable Definitions ****************************/
-
-
-
-/*************************** Functions Prototypes ****************************/
-
-// #ifdef _DEBUG_
-void wlan_exp_print_station_status( station_info * stations, unsigned int num_stations );
-// #endif
-
-
-
-
-/**************************** Common Functions *******************************/
-
-
-
-/*****************************************************************************/
-/**
-* WARPNet WLAN Exp usleep
-*
-* This function will wait for a set amount of microseconds before returning
-*
-* @param    duration - Sleep for "duration" microseconds
-*
-* @return	None.
-*
-* @note		None.
-*
-******************************************************************************/
-
-void usleep( unsigned int duration ){
-
-	u64 time;
-	u64 end_time;
-
-	time     = get_usec_timestamp();
-	end_time = time + duration;
-
-    while( time < end_time ) {
-	    time = get_usec_timestamp();
-    }
+	hw_info_ptr->type              = type;
+	hw_info_ptr->wn_exp_eth_device = eth_dev_num;
 
 }
 
 
+#ifdef USE_WARPNET_WLAN_EXP
+
+/*************************** Constant Definitions ****************************/
+
+/*********************** Global Variable Definitions *************************/
+
+/*************************** Variable Definitions ****************************/
+
+/*************************** Functions Prototypes ****************************/
+
+#ifdef _DEBUG_
+void wlan_exp_print_station_status( station_info * stations, unsigned int num_stations );
+#endif
+
+
+/**************************** Common Functions *******************************/
 
 
 /*****************************************************************************/
@@ -128,11 +102,40 @@ int get_station_status( station_info * stations, u32 num_stations, u32 * buffer,
         memcpy( &buffer[1], stations, size );
     }
 
-// #ifdef _DEBUG_
+#ifdef _DEBUG_
     wlan_exp_print_station_status( stations, num_stations );
-// #endif
+#endif
 
 	return index;
+}
+
+
+
+/*****************************************************************************/
+/**
+* Get MAC Address
+*
+* This function will populate the MAC address buffer, dest, with the MAC
+* address coming over the network (byte swapped).  This uses the same formating
+* as the HW address parameter from transport.c
+*
+* @param    src  - Source buffer of MAC address (u32, byte swapped)
+*           dest - Destination buffer of MAC address
+*
+* @return	None.
+*
+* @note     None.
+*
+******************************************************************************/
+void wlan_exp_get_mac_addr( u32 * src, u8 * dest) {
+
+    dest[0] = (src[0] >> 16) & 0xFF;
+    dest[1] = (src[0] >> 24) & 0xFF;
+    dest[2] = (src[1] >>  0) & 0xFF;
+    dest[3] = (src[1] >>  8) & 0xFF;
+    dest[4] = (src[1] >> 16) & 0xFF;
+    dest[5] = (src[1] >> 24) & 0xFF;
+
 }
 
 
@@ -140,7 +143,7 @@ int get_station_status( station_info * stations, u32 num_stations, u32 * buffer,
 
 
 
-// #ifdef _DEBUG_
+#ifdef _DEBUG_
 
 
 /*****************************************************************************/
@@ -160,6 +163,8 @@ int get_station_status( station_info * stations, u32 num_stations, u32 * buffer,
 void wlan_exp_print_station_status( station_info * stations, unsigned int num_stations ){
 	u32 i;
 
+
+	// !!! FIX !!!
 	for(i=0; i < num_stations; i++){
 		xil_printf("---------------------------------------------------\n");
 		xil_printf(" AID: %02x -- MAC Addr: %02x:%02x:%02x:%02x:%02x:%02x\n", stations[i].AID,
@@ -174,7 +179,7 @@ void wlan_exp_print_station_status( station_info * stations, unsigned int num_st
 }
 
 
-// #endif
+#endif
 
 
 // End USE_WARPNET_WLAN_EXP

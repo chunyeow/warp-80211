@@ -1,11 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////
-// File   :	wlan_exp_node.h
-// Authors:	Chris Hunter (chunter [at] mangocomm.com)
-//			Patrick Murphy (murphpo [at] mangocomm.com)
-//          Erik Welsh (welsh [at] mangocomm.com)
-// License:	Copyright 2013, Mango Communications. All rights reserved.
-//			Distributed under the WARP license  (http://warpproject.org/license)
-////////////////////////////////////////////////////////////////////////////////
+/** @file wlan_exp_node_ap.h
+ *  @brief Access Point WARPNet Experiment
+ *
+ *  This contains code for the 802.11 Access Point's WARPNet experiment interface.
+ *
+ *  @copyright Copyright 2014, Mango Communications. All rights reserved.
+ *          Distributed under the Mango Communications Reference Design License
+ *				See LICENSE.txt included in the design archive or
+ *				at http://mangocomm.com/802.11/license
+ *
+ *  @author Chris Hunter (chunter [at] mangocomm.com)
+ *  @author Patrick Murphy (murphpo [at] mangocomm.com)
+ *  @author Erik Welsh (welsh [at] mangocomm.com)
+ */
+
 
 
 /***************************** Include Files *********************************/
@@ -22,7 +29,10 @@
 // ****************************************************************************
 // Define WLAN Exp Node AP Commands
 //
-#define NODE_GET_ASSN_TBL       5
+#define NODE_AP_ALLOW_ASSOCIATIONS     100
+#define NODE_AP_DISALLOW_ASSOCIATIONS  101
+#define NODE_AP_GET_SSID               102
+#define NODE_AP_SET_SSID               103
 
 
 // ****************************************************************************
