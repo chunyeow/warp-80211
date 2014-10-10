@@ -275,7 +275,7 @@
 
 //Uncomment this macro to enable software support for RF C and D interfaces on the FMC-RF-2X245 module
 // IMPORTANT: Do not use a 4-radio hardware project on a kit with a different FMC module
-//#define WLAN_4RF_EN
+#define WLAN_4RF_EN
 
 #ifdef WLAN_4RF_EN
 #define RC_ALL_RF (RC_RFA | RC_RFB | RC_RFC | RC_RFD)
